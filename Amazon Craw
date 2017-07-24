@@ -20,14 +20,19 @@ Tejia_Today_Price <- gsub("\n| ", "", gsub("\n| |￥", "", Tejia_Today_Price)) #
 
 Tejia_Today_address <- web %>% html_nodes("div.productTitle a") %>% html_attr( "href") # 二级连接地址
 
-Tejia <- data.frame( Date = Sys.Date(), Book_Name = Tejia_Today_Book_Name, Author = Tejia_Today_Author,
-                     `Price(CNY)` = Tejia_Today_Price, Web_Address = Tejia_Today_address)
+Tejia <- tbl_df( data.frame( Date = Sys.Date(), Book_Name = Tejia_Today_Book_Name, Author = Tejia_Today_Author,
+                     `Price(CNY)` = Tejia_Today_Price, Web_Address = Tejia_Today_address, 
+                     stringsAsFactors = FALSE) )
+
+Tejia_DB <- tbl_df( data.frame( Date = Sys.Date(), Book_Name = Tejia_Today_Book_Name, 
+                                Author = Tejia_Today_Author, `Price(CNY)` = Tejia_Today_Price) )
 
 
 # 二级目录
 # 书名 & 作者
-
+Web_second <- read_html( paste0( "https://www.amazon.cn", Tejia$Web_Address[ 1]), encoding="UTF-8")
 # 评分 & 评论
+Second_Book_Name <- Web_second %>% html_nodes("div.byline") %>% html_text() # 无法抓取
 
 # 价格
 
