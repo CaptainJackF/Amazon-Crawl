@@ -1,0 +1,20 @@
+# Amazon crawl
+
+library(rvest)
+library(dplyr)
+
+# Amazon
+web <- read_html( "https://www.amazon.cn/b/ref=s9_acss_bw_cg_NEWKXD_2a1_w?ie=UTF8&node=1875254071&pf_rd_m=A1U5RCOVU0NYF2&pf_rd_s=merchandised-search-2&pf_rd_r=SGCQ3DQQHCFZ8T0PRYHK&pf_rd_t=101&pf_rd_p=631bccc2-e33f-4a6c-88c9-45a4b6c8fa1d&pf_rd_i=116169071", 
+                  encoding="UTF-8")
+# 抓取每日特价书
+
+Tejia_Today <- web %>% html_nodes("div.gridProductContainer") %>% html_text()
+
+Tejia_Today_Book_Name <- web %>% html_nodes("div.productTitle a") %>% html_text() # 书名
+Tejia_Today_Author <- web %>% html_nodes("div.productByLine") %>% html_text() # 作者
+
+Tejia_Today_Price <- web %>% html_nodes("span.productBuyPrice") %>% html_text() # 价格 - CNY
+Tejia_Today_address <- web %>% html_nodes("div.productTitle a") %>% html_attr( "href") # 二级连接地址
+
+
+Tejia_Today_Star <- web %>% html_nodes("div.productReviewStars i") %>% html_text()
