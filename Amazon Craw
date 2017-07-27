@@ -10,7 +10,7 @@ web <- read_html( "https://www.amazon.cn/b/ref=s9_acss_bw_cg_NEWKXD_2a1_w?ie=UTF
 
 # 书名
 Tejia_Today_Book_Name <- web %>% html_nodes("div.productTitle a") %>% html_text() 
-
+Tejia_Today_Book_Name <- gsub(" ", "", Tejia_Today_Book_Name)
 # 作者
 Tejia_Today_Author <- web %>% html_nodes("div.productByLine") %>% html_text() 
 # 删除空格以及转意符
@@ -59,13 +59,13 @@ Second_Publish_date <- ( Web_second %>% html_nodes("div.buying span") %>% html_t
 # 简述
 Second_info <- Web_second %>% html_nodes("div.feature") %>% html_text() # 无法抓取
 
-
 # 封面？
+
 
 #---------------
 
 # DBMSencoding 设为 gbk即可写入中文字符。
-MySQL_connect <- odbcConnect("r_test" , "root" , "Lightning", DBMSencoding = "gbk") # open the gate of Database
+MySQL_connect <- odbcConnect("r_test" , "root" , "Lightning", DBMSencoding = "UTF8") # open the gate of Database
 Tejia_DB$Date <- as.character( Tejia_DB$Date)  # change Date format
 
 sqlSave( channel = MySQL_connect, Tejia_DB, tablename = "amazon crawl test", 
@@ -76,3 +76,7 @@ sqlQuery( MySQL_connect, "select * from `amazon crawl test`")
 odbcClose( MySQL_connect) # close the gate
 
 #---------------
+# 无法写入数据库，中文部分写入时会有缺失.. 八成是编码问题，但尝试过 UTF-8 和 GBK，都不能解决。
+# 从 Amazon 网页上抓取下来的字符是 "UTF-8",数据库是"UTF-8",但始终不能讲抓取下来的 Dataframe 写入数据库。
+# 尝试用 Python 抓取并写入数据库
+
