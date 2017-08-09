@@ -4,17 +4,46 @@ library(rvest)
 library(dplyr)
 library(RODBC)
 
+# Amazon 抓取每周特价书
+
+
 # 每周推荐 - 什么值得读 / 每周特价
-Web_weekly <- read_html("https://www.amazon.cn/b/ref=s9_acss_bw_cg_editor_2a1_cta_w?ie=UTF8&node=1535039071&pf_rd_m=A1U5RCOVU0NYF2&pf_rd_s=merchandised-search-3&pf_rd_r=39Y2Q5HEM8600Z1JRD3M&pf_rd_t=101&pf_rd_p=f6ce25da-f071-4967-8b71-58ade24d60e7&pf_rd_i=116169071",
+Web_weekly <- read_html("https://www.amazon.cn/b/ref=s9_acss_bw_cg_NEWKXD_2b1_w?ie=UTF8&node=1852543071&pf_rd_m=A1U5RCOVU0NYF2&pf_rd_s=merchandised-search-2&pf_rd_r=PCA84769KRJZMVANN39Q&pf_rd_t=101&pf_rd_p=02294cdd-81ea-4ce9-bf03-13a657773184&pf_rd_i=116169071",
                         encoding = "UTF-8")
 
-# Links of 6 Books
-Commend_Links <- Web_weekly %>% html_nodes("div.bxc-grid__text a") %>% html_attr( "href") 
-# 每周推荐界面不好抓取，因此改为通过识别出二级链接，对二级链接内的信息进行抓取。
-# 因此还可以抓取评论等深层次的内容。
+# Weekly
 
-Web_weekly2 <- read_html("https://www.amazon.cn/b/ref=s9_acss_bw_cg_NEWKXD_2b1_w?ie=UTF8&node=1852543071&pf_rd_m=A1U5RCOVU0NYF2&pf_rd_s=merchandised-search-2&pf_rd_r=CHB4V4YF5SDW6VV7Y9W7&pf_rd_t=101&pf_rd_p=631bccc2-e33f-4a6c-88c9-45a4b6c8fa1d&pf_rd_i=116169071",
-                         encoding = "UTF-8")
 # 书名
-Tejia_Weekly_Book_Name <- Web_weekly2 %>% html_nodes("ol.a-carousel li a.a-link-normal") %>% html_text() 
-Tejia_Weekly_Book_Name <- gsub(" |\n|\t", "", Tejia_Weekly_Book_Name)
+Tejia_Weekly_Book_Name <- Web_weekly %>% html_nodes("div.a-box-group div.a-carousel-viewport span.a-size-small") %>% html_text() 
+
+# 作者
+Tejia_Weekly_Author <- Web_weekly %>% html_nodes("div.a-box-group div.a-carousel-viewport div.a-box-group") %>% html_text() 
+# 删除空格以及转意符
+Tejia_Weekly_Author <- gsub("\n| ", "", Tejia_Weekly_Author)
+
+# 价格 - CNY
+Tejia_Weekly_Price <- Web_weekly %>% html_nodes("div.a-box-group div.a-carousel-viewport span.a-size-base") %>% html_text() 
+# 删除空格、转符和人民币符号
+Tejia_Weekly_Price <- as.double( gsub("￥|<U+00A0>", "", Tejia_Weekly_Price))
+
+# 评星
+Tejia_Weekly_Stars <- Web_weekly %>% html_nodes("div.a-box-group div.a-carousel-viewport i.a-icon") %>% html_text() # nothing
+
+# 评论人数
+Tejia_Weekly_NumOfReview <- Web_weekly %>% 
+  html_nodes("div.a-box-group div.a-carousel-viewport span.acs_product-rating__review-count") %>% 
+  html_text() 
+
+
+# 二级连接地址
+Tejia_Weekly_address <- Web_weekly %>% html_nodes("div.a-carousel-viewport a.a-link-normal") %>% html_attr( "href") 
+
+Tejia_Weekly <- tbl_df( data.frame( Date = Sys.Date(), Book_Name = Tejia_Weekly_Book_Name, Author = "NULL",
+                             `Price(CNY)` = Tejia_Weekly_Price, Web_Address = Tejia_Weekly_address, 
+                             stringsAsFactors = FALSE) )
+
+Tejia_Weekly_DB <- tbl_df( data.frame( Date = Sys.Date(), Book_Name = Tejia_Weekly_Book_Name, 
+                                Author = "NULL", Stars = Tejia_Weekly_Stars,
+                                Num_Of_Review = Tejia_Weekly_NumOfReview, Price_CNY = Tejia_Weekly_Price,
+                                stringsAsFactors = F) )
+
