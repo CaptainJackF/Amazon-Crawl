@@ -78,5 +78,5 @@ odbcClose( MySQL_connect) # close the gate
 #---------------
 # 无法写入数据库，中文部分写入时会有缺失.. 八成是编码问题，但尝试过 UTF-8 和 GBK，都不能解决。
 # 从 Amazon 网页上抓取下来的字符是 "UTF-8",数据库是"UTF-8",但始终不能讲抓取下来的 Dataframe 写入数据库。
-# 尝试用 Python 抓取并写入数据库
+# 尝试用 Python 抓取并写入数据库。
 
