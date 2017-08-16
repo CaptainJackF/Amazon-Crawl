@@ -1,0 +1,76 @@
+# Lagou crawl
+
+#加载所需要的包
+library( xml2)
+library( rvest)
+library( ggplot2)
+library( stringr)
+library( dplyr)
+library( plotrix)
+library( RColorBrewer)
+library( jiebaR)
+library( wordcloud2)
+library( raster)
+
+#对爬取页数进行设定并创建数据框
+i <- 1
+page <- 10
+job <- data.frame()
+job_temp <- data.frame()
+#使用for循环进行批量数据爬取
+for ( i in 1:page){
+  web <- read_html( str_c("https://www.lagou.com/zhaopin/shujuwajue/", i) , encoding = "UTF-8")
+  # 通过多重变迁定位，可以避免抓取到不需要的信息。
+  job_name <- web %>% html_nodes( "a.position_link h2") %>% html_text()
+  #job_name[16] <- NA
+  #job_name <- job_name[ !is.na( job_name)]
+  
+  # 可以利用html_attr/attrs 提取标签内的信息。 ***
+  job_web_address <- web %>% html_nodes( "a.position_link") %>% html_attr( "href")
+  
+  job_company <- web %>% html_nodes( ".company_name a") %>% html_text()
+  
+  job_city <- web %>% html_nodes( "a.position_link em") %>% html_text()
+  #job_city[16] <-NA
+  #job_city[17] <-NA
+  #job_city <- job_city[ !is.na( job_city)]
+  
+  job_pay <- web %>% html_nodes( "span.money") %>% html_text()
+  job_exp <- web %>% html_nodes( "div.p_bot .li_b_l") %>% html_text()
+  # 是否可以剔除掉 job_pay部分信息？
+  
+  job_industry <- web %>% html_nodes( ".industry") %>% html_text()
+  job_tag <- web %>% html_nodes( ".list_item_bot .li_b_l") %>% html_text()
+  
+  job_temptation <- web %>% html_nodes( ".li_b_r") %>% html_text()
+  #创建数据框存储以上信息
+  job_temp <- data.frame( job_name, job_company, job_city, job_pay, job_exp, 
+                     job_industry, job_tag, job_temptation, job_address)
+  job <- rbind( job, job_temp)
+
+}
+
+# 此部分可优化，利用 自定义函数和 apply替代for循环。
+job$job_exp <- as.character( job$job_exp)
+i <- 1
+for( i in 1:length( job$job_exp)){
+  job$job_exp[i] <- sub( job$job_pay[i], "", job$job_exp[i])
+  i <- i +1
+}
+
+# Del " " and "\n" 
+job$job_exp <- gsub("\n| ", "", job$job_exp) # gsub 可以处理所有" "内的字符，
+job$job_industry <- gsub("\n| ", "", job$job_industry)
+job$job_tag <- gsub("\n| ", "", job$job_tag)
+
+write.csv( job, "D:/x.csv", row.names = FALSE) 
+-------
+sub( job_pay, "", job$job_exp)
+job <- data.frame( job_exp, job_pay)
+
+TEST <- function( x, needDel, oriChar){
+  sub( x$needDel, "", x$oriChar)
+
+}
+
+mutate( job, sub( job_pay, "", job_exp))
