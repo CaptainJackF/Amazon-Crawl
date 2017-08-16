@@ -1,0 +1,17 @@
+# 爬取豆瓣即将上映电影信息
+# 查看HTML代码后，发现需要爬取得内容是一table形式储存
+
+library( XML)
+library( rvest)
+
+Url <- "https://movie.douban.com/coming"
+
+# Method 1 : Using readHTMLTable
+Douban_coming_movie1 <- readHTMLTable( readLines( Url, encoding = "utf-8"), header = T)[[2]]
+# header 会乱码
+names( Douban_coming_movie1) <- c( "上映日期", "片名", "类型", "制片国家 / 地区", "想看")
+
+# Method 2 : Using rvest 使用起来也很方便。
+# table 2 only
+Douban_coming_movie2 <- read_html( Url) %>% 
+  html_table(fill=TRUE) %>% .[[2]] 
